@@ -13,10 +13,12 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int UNIT_SIZE = 25;
     static final int GAME_UNITS = (SCREEN_HEIGHT * SCREEN_WIDTH) / (UNIT_SIZE * UNIT_SIZE);
 
+    static final int NUM_OF_UNITS_HORIZONTALLY = SCREEN_WIDTH/UNIT_SIZE;
+
     static final int DELAY = 75;
 
-    final int x[] = new int[GAME_UNITS];
-    final int y[] = new int[GAME_UNITS];
+    final int[] x = new int[GAME_UNITS];
+    final int[] y = new int[GAME_UNITS];
     int bodyParts = 6;
     int applesEaten;
     int appleX;
@@ -52,7 +54,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void updateFrame(Graphics g) {
 
-        if (running == true) {
+        if (running) {
             drawApple(g);
             drawGrid(g);
             drawSnake(g);
@@ -69,7 +71,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 g.setColor(Color.green);
                 g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             } else {
-                g.setColor(new Color((40+7*i)%255, ((150-5*i)%255+255)%255, (20+11*i)%255));
+                g.setColor(new Color((40 + 7 * i) % 255, ((150 - 5 * i) % 255 + 255) % 255, (20 + 11 * i) % 255));
                 g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             }
         }
@@ -92,15 +94,36 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void drawScore(Graphics g) {
         g.setColor(Color.red);
-        g.setFont(new Font("Ink Free", Font.BOLD, 75));
+        g.setFont(new Font("Ink Free", Font.BOLD, 35));
         FontMetrics metrics = getFontMetrics(g.getFont());
-        g.drawString("Score "+applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score "+applesEaten))/2,
+        g.drawString("Score " + applesEaten, (SCREEN_WIDTH - metrics.stringWidth("Score " + applesEaten)) / 2,
                 50);
     }
 
     public void newApple() {
-        appleX = random.nextInt((int) (SCREEN_WIDTH / UNIT_SIZE)) * UNIT_SIZE;
-        appleY = random.nextInt((int) (SCREEN_HEIGHT / UNIT_SIZE)) * UNIT_SIZE;
+        if (bodyParts < GAME_UNITS) {
+            int[] gridBodyParts = new int[bodyParts];
+            for (int i = bodyParts; i > 0; i--) {
+                gridBodyParts[i-1]=pixels2Grid(x[i],y[i]);
+            }
+            int rnd = getRandomWithExclusion(random, GAME_UNITS,gridBodyParts);
+            System.out.println(rnd);
+
+            Dimension appleCoord = Grid2Pixels(rnd);
+
+            appleX = (int) appleCoord.getWidth();
+            appleY = (int) appleCoord.getHeight();
+        }
+    }
+    public int getRandomWithExclusion(Random rnd, int gameSize, int... exclude) {
+        int random =rnd.nextInt(gameSize - exclude.length);
+        for (int ex : exclude) {
+            if (random < ex) {
+                break;
+            }
+            random++;
+        }
+        return random;
     }
 
     public void move() {
@@ -162,9 +185,22 @@ public class GamePanel extends JPanel implements ActionListener {
         g.setColor(Color.red);
         g.setFont(new Font("Ink Free", Font.BOLD, 75));
         FontMetrics metrics = getFontMetrics(g.getFont());
-        g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("GameOver"))/2,
-                SCREEN_HEIGHT/2);
+        g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("GameOver")) / 2,
+                SCREEN_HEIGHT / 2);
 
+    }
+
+
+    public int pixels2Grid(int xCoord,int yCoord){
+        int gridNumber = (yCoord/UNIT_SIZE)*NUM_OF_UNITS_HORIZONTALLY+xCoord/UNIT_SIZE;
+        return gridNumber;
+    }
+    public Dimension Grid2Pixels(int gridCoord){
+        int xCoord = (gridCoord%NUM_OF_UNITS_HORIZONTALLY)*UNIT_SIZE;
+        int yCoord = (gridCoord/NUM_OF_UNITS_HORIZONTALLY)*UNIT_SIZE;
+
+
+        return new Dimension(xCoord, yCoord);
     }
 
 
