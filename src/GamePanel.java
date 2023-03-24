@@ -13,12 +13,12 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int UNIT_SIZE = 25;
     static final int GAME_UNITS = (SCREEN_HEIGHT * SCREEN_WIDTH) / (UNIT_SIZE * UNIT_SIZE);
 
-    static final int NUM_OF_UNITS_HORIZONTALLY = SCREEN_WIDTH/UNIT_SIZE;
+    static final int NUM_OF_UNITS_HORIZONTALLY = SCREEN_WIDTH / UNIT_SIZE;
 
     static final int DELAY = 75;
+    int[] x;
+    int[] y;
 
-    final int[] x = new int[GAME_UNITS];
-    final int[] y = new int[GAME_UNITS];
     int bodyParts = 6;
     int applesEaten;
     int appleX;
@@ -26,20 +26,38 @@ public class GamePanel extends JPanel implements ActionListener {
     char direction = 'R';
     boolean running = false;
     boolean keyPressed = false;
+    boolean firstGame = true;
     Timer timer;
     Random random;
+    JButton restartButton;
 
 
     GamePanel() {
+        restartButtonSetup();
+        this.add(restartButton);
+
         random = new Random();
+        this.setLayout(null);
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
         this.setBackground(Color.black);
         this.setFocusable(true);
         this.addKeyListener(new MyKeyAdapter());
-        startGame();
+
     }
 
+    private void restartButtonSetup() {
+        restartButton = new JButton();
+        restartButton.setBounds(SCREEN_WIDTH / 2 - 50, 400, 100, 50);
+        restartButton.setText("Start");
+        restartButton.setFocusable(false);
+        restartButton.addActionListener(this);
+        restartButton.setVisible(true);
+    }
+
+
     public void startGame() {
+        x = new int[GAME_UNITS];
+        y = new int[GAME_UNITS];
         newApple();
         running = true;
         timer = new Timer(DELAY, this);
@@ -54,7 +72,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void updateFrame(Graphics g) {
 
-        if (running) {
+        if (running && !firstGame) {
             drawApple(g);
             drawGrid(g);
             drawSnake(g);
@@ -104,10 +122,9 @@ public class GamePanel extends JPanel implements ActionListener {
         if (bodyParts < GAME_UNITS) {
             int[] gridBodyParts = new int[bodyParts];
             for (int i = bodyParts; i > 0; i--) {
-                gridBodyParts[i-1]=pixels2Grid(x[i],y[i]);
+                gridBodyParts[i - 1] = pixels2Grid(x[i], y[i]);
             }
-            int rnd = getRandomWithExclusion(random, GAME_UNITS,gridBodyParts);
-            System.out.println(rnd);
+            int rnd = getRandomWithExclusion(random, GAME_UNITS, gridBodyParts);
 
             Dimension appleCoord = Grid2Pixels(rnd);
 
@@ -115,8 +132,9 @@ public class GamePanel extends JPanel implements ActionListener {
             appleY = (int) appleCoord.getHeight();
         }
     }
+
     public int getRandomWithExclusion(Random rnd, int gameSize, int... exclude) {
-        int random =rnd.nextInt(gameSize - exclude.length);
+        int random = rnd.nextInt(gameSize - exclude.length);
         for (int ex : exclude) {
             if (random < ex) {
                 break;
@@ -182,22 +200,30 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void gameOver(Graphics g) {
-        g.setColor(Color.red);
-        g.setFont(new Font("Ink Free", Font.BOLD, 75));
-        FontMetrics metrics = getFontMetrics(g.getFont());
-        g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("GameOver")) / 2,
-                SCREEN_HEIGHT / 2);
 
+        if (!firstGame) {
+            g.setColor(Color.red);
+            g.setFont(new Font("Ink Free", Font.BOLD, 75));
+            FontMetrics metrics = getFontMetrics(g.getFont());
+            g.drawString("Game Over", (SCREEN_WIDTH - metrics.stringWidth("GameOver")) / 2,
+                    SCREEN_HEIGHT / 2);
+            restartButton.setVisible(true);
+            restartButton.setText("Restart");
+        } else {
+            restartButton.setVisible(true);
+            restartButton.setText("Start");
+        }
     }
 
 
-    public int pixels2Grid(int xCoord,int yCoord){
-        int gridNumber = (yCoord/UNIT_SIZE)*NUM_OF_UNITS_HORIZONTALLY+xCoord/UNIT_SIZE;
+    public int pixels2Grid(int xCoord, int yCoord) {
+        int gridNumber = (yCoord / UNIT_SIZE) * NUM_OF_UNITS_HORIZONTALLY + xCoord / UNIT_SIZE;
         return gridNumber;
     }
-    public Dimension Grid2Pixels(int gridCoord){
-        int xCoord = (gridCoord%NUM_OF_UNITS_HORIZONTALLY)*UNIT_SIZE;
-        int yCoord = (gridCoord/NUM_OF_UNITS_HORIZONTALLY)*UNIT_SIZE;
+
+    public Dimension Grid2Pixels(int gridCoord) {
+        int xCoord = (gridCoord % NUM_OF_UNITS_HORIZONTALLY) * UNIT_SIZE;
+        int yCoord = (gridCoord / NUM_OF_UNITS_HORIZONTALLY) * UNIT_SIZE;
 
 
         return new Dimension(xCoord, yCoord);
@@ -207,6 +233,17 @@ public class GamePanel extends JPanel implements ActionListener {
     /*Well add some methods here*/
     @Override
     public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource() == restartButton) {
+            running = true;
+            restartButton.setVisible(false);
+            restartButton.setText("Start");
+            direction = 'R';
+            applesEaten = 0;
+            bodyParts = 6;
+            firstGame =false;
+            startGame();
+        }
         if (running) {
             keyPressed = false;
             move();
