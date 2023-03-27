@@ -21,7 +21,7 @@ public class GamePanel extends JPanel implements ActionListener {
     int[] x;
     int[] y;
 
-    int bodyParts = 6;
+    private int bodyParts = 6;
     int applesEaten;
     int appleX;
     int appleY;
@@ -29,14 +29,19 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean running = false;
     boolean keyPressed = false;
     boolean firstGame = true;
+
+    boolean wallsEnabled = true;
     Timer timer;
     Random random;
     JButton restartButton;
-    LinkedList<KeyEvent> keyInputList = new LinkedList<KeyEvent>();
+    JButton wallsButton;
+    LinkedList<KeyEvent> keyInputList = new LinkedList<>();
 
 
     GamePanel() {
         restartButtonSetup();
+        wallsButtonSetup();
+        this.add(wallsButton);
         this.add(restartButton);
 
         random = new Random();
@@ -57,8 +62,18 @@ public class GamePanel extends JPanel implements ActionListener {
         restartButton.setVisible(true);
     }
 
+    private void wallsButtonSetup(){
+        wallsButton = new JButton();
+        wallsButton.setBounds(SCREEN_WIDTH / 2 - 50, 460, 100, 50);
+        wallsButton.setText("Walls: ON");
+        wallsButton.setFocusable(false);
+        wallsButton.addActionListener(this);
+        wallsButton.setVisible(true);
+    }
+
 
     public void startGame() {
+        wallsButton.setVisible(false);
         x = new int[GAME_UNITS];
         y = new int[GAME_UNITS];
         newApple();
@@ -99,7 +114,7 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void drawGrid(Graphics g) {
-        g.setColor(Color.darkGray);
+        g.setColor(new Color(24, 22, 22));
         for (int i = 0; i < SCREEN_HEIGHT / UNIT_SIZE; i++) {
             g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
         }
@@ -153,21 +168,22 @@ public class GamePanel extends JPanel implements ActionListener {
             x[i] = x[i - 1];
             y[i] = y[i - 1];
         }
-        switch (direction) {
-            case 'U':
-                y[0] = y[0] - UNIT_SIZE;
-                break;
-            case 'D':
-                y[0] = y[0] + UNIT_SIZE;
-                break;
-            case 'L':
-                x[0] = x[0] - UNIT_SIZE;
-                break;
-            case 'R':
-                x[0] = x[0] + UNIT_SIZE;
-                break;
-
+        if (wallsEnabled) {
+            switch (direction) {
+                case 'U' -> y[0] = y[0] - UNIT_SIZE;
+                case 'D' -> y[0] = y[0] + UNIT_SIZE;
+                case 'L' -> x[0] = x[0] - UNIT_SIZE;
+                case 'R' -> x[0] = x[0] + UNIT_SIZE;
+            }
+        } else {
+            switch (direction) {
+                case 'U' -> y[0] = Math.floorMod(y[0]-UNIT_SIZE,SCREEN_HEIGHT);
+                case 'D' -> y[0] = (y[0] + UNIT_SIZE)%SCREEN_HEIGHT;
+                case 'L' -> x[0] = Math.floorMod(x[0] - UNIT_SIZE,SCREEN_WIDTH);
+                case 'R' -> x[0] = (x[0] + UNIT_SIZE)%SCREEN_WIDTH;
+            }
         }
+
 
     }
 
@@ -181,7 +197,10 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void checkCollisions() {
         checkCollisionsWithBody();
-        checkCollisionsWithWalls();
+        if (wallsEnabled) {
+            checkCollisionsWithWalls();
+        }
+
         if (!running) {
             timer.stop();
         }
@@ -191,6 +210,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (int i = bodyParts; i > 0; i--) {
             if ((x[0] == x[i]) && (y[0] == y[i])) {
                 running = false;
+                break;
             }
         }
     }
@@ -217,12 +237,12 @@ public class GamePanel extends JPanel implements ActionListener {
             restartButton.setVisible(true);
             restartButton.setText("Start");
         }
+        wallsButton.setVisible(true);
     }
 
 
     public int pixels2Grid(int xCoord, int yCoord) {
-        int gridNumber = (yCoord / UNIT_SIZE) * NUM_OF_UNITS_HORIZONTALLY + xCoord / UNIT_SIZE;
-        return gridNumber;
+        return (yCoord / UNIT_SIZE) * NUM_OF_UNITS_HORIZONTALLY + xCoord / UNIT_SIZE;
     }
 
     public Dimension Grid2Pixels(int gridCoord) {
@@ -235,6 +255,38 @@ public class GamePanel extends JPanel implements ActionListener {
 
 
     /*Well add some methods here*/
+    public void changeDirection(KeyEvent e) {
+
+        if (e != null) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT -> {
+                    if (direction != 'R') {
+                        direction = 'L';
+                        keyPressed = true;
+                    }
+                }
+                case KeyEvent.VK_DOWN -> {
+                    if (direction != 'U') {
+                        direction = 'D';
+                        keyPressed = true;
+                    }
+                }
+                case KeyEvent.VK_RIGHT -> {
+                    if (direction != 'L') {
+                        direction = 'R';
+                        keyPressed = true;
+                    }
+                }
+                case KeyEvent.VK_UP -> {
+                    if (direction != 'D') {
+                        direction = 'U';
+                        keyPressed = true;
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -248,8 +300,18 @@ public class GamePanel extends JPanel implements ActionListener {
             firstGame = false;
             startGame();
         }
+        if (e.getSource() == wallsButton) {
+            wallsEnabled = !wallsEnabled;
+            if (wallsEnabled) {
+                wallsButton.setText("Walls: ON");
+            } else {
+                wallsButton.setText("Walls: OFF");
+            }
+        }
         if (running) {
-            keyPressed = false;
+            if (keyInputList.size() > 0) {
+                changeDirection(keyInputList.removeFirst());
+            }
             move();
             checkApple();
             checkCollisions();
@@ -257,43 +319,11 @@ public class GamePanel extends JPanel implements ActionListener {
         repaint();
     }
 
-    public void changeDirection() {
-
-    }
-
     public class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
             keyInputList.add(e);
-            if () {
-                switch (e.getKeyCode()) {
-                    case KeyEvent.VK_LEFT:
-                        if (direction != 'R') {
-                            direction = 'L';
-                            keyPressed = true;
-                        }
-                        break;
-                    case KeyEvent.VK_DOWN:
-                        if (direction != 'U') {
-                            direction = 'D';
-                            keyPressed = true;
-                        }
-                        break;
-                    case KeyEvent.VK_RIGHT:
-                        if (direction != 'L') {
-                            direction = 'R';
-                            keyPressed = true;
-                        }
-                        break;
-                    case KeyEvent.VK_UP:
-                        if (direction != 'D') {
-                            direction = 'U';
-                            keyPressed = true;
-                        }
-                        break;
 
-                }
-            }
         }
 
     }
