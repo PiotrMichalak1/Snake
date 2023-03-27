@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Random;
@@ -37,6 +38,7 @@ public class GamePanel extends JPanel implements ActionListener {
     JButton wallsButton;
     LinkedList<KeyEvent> keyInputList = new LinkedList<>();
 
+    BlankCursor blankCursor = new BlankCursor();
 
     GamePanel() {
         restartButtonSetup();
@@ -238,6 +240,7 @@ public class GamePanel extends JPanel implements ActionListener {
             restartButton.setText("Start");
         }
         wallsButton.setVisible(true);
+        setCursor(Cursor.getDefaultCursor());
     }
 
 
@@ -298,6 +301,7 @@ public class GamePanel extends JPanel implements ActionListener {
             applesEaten = 0;
             bodyParts = 6;
             firstGame = false;
+            setCursor(blankCursor.getBlankCursor());
             startGame();
         }
         if (e.getSource() == wallsButton) {
