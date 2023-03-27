@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class GamePanel extends JPanel implements ActionListener {
@@ -30,6 +32,7 @@ public class GamePanel extends JPanel implements ActionListener {
     Timer timer;
     Random random;
     JButton restartButton;
+    LinkedList<KeyEvent> keyInputList = new LinkedList<KeyEvent>();
 
 
     GamePanel() {
@@ -134,6 +137,7 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public int getRandomWithExclusion(Random rnd, int gameSize, int... exclude) {
+        Arrays.sort(exclude);
         int random = rnd.nextInt(gameSize - exclude.length);
         for (int ex : exclude) {
             if (random < ex) {
@@ -169,9 +173,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void checkApple() {
         if ((x[0] == appleX) && (y[0] == appleY)) {
+            newApple();
             bodyParts++;
             applesEaten++;
-            newApple();
         }
     }
 
@@ -241,7 +245,7 @@ public class GamePanel extends JPanel implements ActionListener {
             direction = 'R';
             applesEaten = 0;
             bodyParts = 6;
-            firstGame =false;
+            firstGame = false;
             startGame();
         }
         if (running) {
@@ -253,10 +257,15 @@ public class GamePanel extends JPanel implements ActionListener {
         repaint();
     }
 
+    public void changeDirection() {
+
+    }
+
     public class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
-            if (!keyPressed) {
+            keyInputList.add(e);
+            if () {
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_LEFT:
                         if (direction != 'R') {
