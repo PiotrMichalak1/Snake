@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Random;
@@ -64,7 +63,7 @@ public class GamePanel extends JPanel implements ActionListener {
         restartButton.setVisible(true);
     }
 
-    private void wallsButtonSetup(){
+    private void wallsButtonSetup() {
         wallsButton = new JButton();
         wallsButton.setBounds(SCREEN_WIDTH / 2 - 50, 460, 100, 50);
         wallsButton.setText("Walls: ON");
@@ -140,8 +139,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void newApple() {
         if (bodyParts < GAME_UNITS) {
-            int[] gridBodyParts = new int[bodyParts];
+            int[] gridBodyParts = new int[bodyParts+1];
             for (int i = bodyParts; i > 0; i--) {
+                gridBodyParts[bodyParts] = pixels2Grid(appleX,appleY);
                 gridBodyParts[i - 1] = pixels2Grid(x[i], y[i]);
             }
             int rnd = getRandomWithExclusion(random, GAME_UNITS, gridBodyParts);
@@ -179,10 +179,10 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         } else {
             switch (direction) {
-                case 'U' -> y[0] = Math.floorMod(y[0]-UNIT_SIZE,SCREEN_HEIGHT);
-                case 'D' -> y[0] = (y[0] + UNIT_SIZE)%SCREEN_HEIGHT;
-                case 'L' -> x[0] = Math.floorMod(x[0] - UNIT_SIZE,SCREEN_WIDTH);
-                case 'R' -> x[0] = (x[0] + UNIT_SIZE)%SCREEN_WIDTH;
+                case 'U' -> y[0] = Math.floorMod(y[0] - UNIT_SIZE, SCREEN_HEIGHT);
+                case 'D' -> y[0] = (y[0] + UNIT_SIZE) % SCREEN_HEIGHT;
+                case 'L' -> x[0] = Math.floorMod(x[0] - UNIT_SIZE, SCREEN_WIDTH);
+                case 'R' -> x[0] = (x[0] + UNIT_SIZE) % SCREEN_WIDTH;
             }
         }
 
@@ -326,7 +326,7 @@ public class GamePanel extends JPanel implements ActionListener {
     public class MyKeyAdapter extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
-            if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                 System.exit(0);
             }
             keyInputList.add(e);

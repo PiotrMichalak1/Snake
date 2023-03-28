@@ -6,7 +6,7 @@ public class BlankCursor {
     Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(
             cursorImg, new Point(0, 0), "blank cursor");
 
-    public Cursor getBlankCursor(){
+    public Cursor getBlankCursor() {
         return blankCursor;
     }
 
