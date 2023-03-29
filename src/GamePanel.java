@@ -294,10 +294,11 @@ public class GamePanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == restartButton) {
+            keyInputList.clear();
+            direction = 'R';
             running = true;
             restartButton.setVisible(false);
             restartButton.setText("Start");
-            direction = 'R';
             applesEaten = 0;
             bodyParts = 6;
             firstGame = false;
@@ -317,8 +318,9 @@ public class GamePanel extends JPanel implements ActionListener {
                 changeDirection(keyInputList.removeFirst());
             }
             move();
-            checkApple();
             checkCollisions();
+            checkApple();
+
         }
         repaint();
     }
