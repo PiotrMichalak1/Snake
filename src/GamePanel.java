@@ -38,6 +38,7 @@ public class GamePanel extends JPanel implements ActionListener {
     LinkedList<KeyEvent> keyInputList = new LinkedList<>();
 
     BlankCursor blankCursor = new BlankCursor();
+    SnakeColor snakeColor;
 
     GamePanel() {
         restartButtonSetup();
@@ -46,6 +47,7 @@ public class GamePanel extends JPanel implements ActionListener {
         this.add(restartButton);
 
         random = new Random();
+        snakeColor = new SnakeColor(random);
         this.setLayout(null);
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
         this.setBackground(Color.black);
@@ -103,16 +105,21 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void drawSnake(Graphics g) {
-        for (int i = 0; i < bodyParts; i++) {
+        for (int i = bodyParts - 1; i > -1; i--) {
+
+
+            g.setColor(snakeColor.createColorForSnakeBody(i));
+            g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+
             if (i == 0) {
-                g.setColor(Color.green);
-                g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
-            } else {
-                g.setColor(new Color((40 + 7 * i) % 255, ((150 - 5 * i) % 255 + 255) % 255, (20 + 11 * i) % 255));
-                g.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
+
+                g.setColor(Color.red);
+                g.drawRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
             }
+
         }
     }
+
 
     public void drawGrid(Graphics g) {
         g.setColor(new Color(24, 22, 22));
@@ -139,9 +146,9 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void newApple() {
         if (bodyParts < GAME_UNITS) {
-            int[] gridBodyParts = new int[bodyParts+1];
+            int[] gridBodyParts = new int[bodyParts + 1];
             for (int i = bodyParts; i > 0; i--) {
-                gridBodyParts[bodyParts] = pixels2Grid(appleX,appleY);
+                gridBodyParts[bodyParts] = pixels2Grid(appleX, appleY);
                 gridBodyParts[i - 1] = pixels2Grid(x[i], y[i]);
             }
             int rnd = getRandomWithExclusion(random, GAME_UNITS, gridBodyParts);
@@ -235,6 +242,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     SCREEN_HEIGHT / 2);
             restartButton.setVisible(true);
             restartButton.setText("Restart");
+            snakeColor.setNewRandomStartingColors(random);
         } else {
             restartButton.setVisible(true);
             restartButton.setText("Start");
